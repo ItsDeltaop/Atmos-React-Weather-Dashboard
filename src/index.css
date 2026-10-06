@@ -1,3 +1,4 @@
+/* Base reset and design tokens */
 * { box-sizing: border-box; }
 
 :root {
@@ -28,6 +29,8 @@ body {
 
 button, input, select { font: inherit; }
 
+
+/* Decorative background */
 .app-shell { position: relative; isolation: isolate; }
 .noise {
   position: fixed; inset: 0; pointer-events: none; opacity: .025; z-index: -1;
@@ -37,6 +40,8 @@ button, input, select { font: inherit; }
 .ambient-one { background: #646cff; top: 10%; left: -180px; }
 .ambient-two { background: #28c8ff; right: -200px; bottom: 5%; }
 
+
+/* Header */
 .topbar {
   border-bottom: 1px solid var(--line);
   background: rgba(7,17,31,.62);
@@ -62,6 +67,8 @@ button, input, select { font: inherit; }
 }
 .status-pill span { width:7px; height:7px; border-radius:50%; background:var(--success); box-shadow:0 0 12px var(--success); }
 
+
+/* Main dashboard layout */
 .dashboard { max-width:1240px; margin:auto; padding:58px 24px 35px; }
 .hero-copy { margin-bottom:34px; }
 .eyebrow { margin:0 0 9px; color:#7e90a9; font-size:10px; font-weight:800; letter-spacing:.17em; }
@@ -110,6 +117,8 @@ button, input, select { font: inherit; }
 .feature-row span { display:flex; align-items:center; gap:5px; }
 .feature-row svg { width:13px; }
 
+
+/* Weather results and empty state */
 .weather-area { min-width:0; }
 .empty-state { min-height:420px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:45px; }
 .empty-icon { width:72px; height:72px; border-radius:22px; display:grid; place-items:center; margin-bottom:22px; color:#9aa4ff; background:rgba(124,131,255,.09); border:1px solid rgba(124,131,255,.15); }
@@ -119,6 +128,8 @@ button, input, select { font: inherit; }
 .empty-hint { margin-top:15px; padding:9px 12px; border:1px solid var(--line); border-radius:999px; color:#91a1b7; font-size:11px; display:flex; gap:7px; align-items:center; }
 .empty-hint svg { width:13px; color:#8b93ff; }
 
+
+/* Current conditions */
 .current-weather-card {
   position:relative; overflow:hidden; border-radius:26px;
   padding:28px; border:1px solid rgba(148,163,184,.15);
@@ -144,6 +155,8 @@ button, input, select { font: inherit; }
 .metric-value { margin-top:5px; color:#fff; font-size:16px; font-weight:700; }
 .metric-icon { color:#a8b1ff; width:16px; margin-bottom:7px; }
 
+
+/* Forecast */
 .forecast-section { margin-top:30px; }
 .section-heading { display:flex; justify-content:space-between; align-items:end; margin-bottom:14px; }
 .section-heading h2 { margin:0; font-size:22px; letter-spacing:-.04em; }
@@ -165,6 +178,8 @@ button, input, select { font: inherit; }
 .forecast-stat strong { color:#cbd6e4; font-size:10px; }
 .forecast-stat svg { width:12px; }
 
+
+/* Feedback and footer */
 .alert-wrap { max-width:1240px; margin:18px auto 0; padding:0 24px; }
 .alert-box { border-radius:15px; border:1px solid rgba(248,113,113,.25); background:rgba(76,22,34,.75); color:#fecaca; padding:13px 15px; display:flex; justify-content:space-between; align-items:center; font-size:12px; }
 .alert-box svg { width:17px; }
@@ -174,6 +189,8 @@ button, input, select { font: inherit; }
 
 .hidden { display:none !important; }
 
+
+/* Dynamic weather effect */
 .weather-rainy {
   background:
     linear-gradient(rgba(5,14,26,.25),rgba(5,14,26,.25)),
@@ -187,6 +204,8 @@ button, input, select { font: inherit; }
 }
 @keyframes rain { to { background-position:-50px 160px; } }
 
+
+/* Responsive breakpoints */
 @media (max-width: 950px) {
   .control-grid { grid-template-columns:1fr; }
   .search-panel { position:relative; top:auto; }
@@ -195,7 +214,9 @@ button, input, select { font: inherit; }
 @media (max-width: 620px) {
   .topbar-inner { padding:14px 16px; }
   .status-pill { display:none; }
-  .dashboard { padding:38px 16px 25px; }
+  
+/* Main dashboard layout */
+.dashboard { padding:38px 16px 25px; }
   .hero-copy { margin-bottom:25px; }
   .hero-copy h1 { font-size:48px; }
   .search-panel, .current-weather-card, .empty-state { border-radius:20px; }

@@ -1,3 +1,16 @@
+/**
+ * Atmos Weather Dashboard
+ * -----------------------
+ * Client-side weather dashboard built with React and Vite.
+ *
+ * Data flow:
+ * 1. A city name or browser coordinates are converted into OpenWeatherMap
+ *    request parameters.
+ * 2. The current-weather and 5-day/3-hour forecast endpoints are requested.
+ * 3. The API response is normalized just enough for the presentation
+ *    components below; no backend or database is involved.
+ * 4. The UI keeps the last five searched cities in localStorage.
+ */
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -6,15 +19,26 @@ import {
 } from 'lucide-react';
 import './index.css';
 
+// OpenWeatherMap is called directly from the browser. The Vite-prefixed
+// environment variable is exposed to client-side code at build time.
 const API_BASE = 'https://api.openweathermap.org/data/2.5';
 const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
 const ICON_BASE = 'https://openweathermap.org/img/wn';
 
+/** Format an API temperature (stored/displayed as Celsius) in the selected unit. */
 function getTemp(celsius, unit) {
   const value = unit === 'C' ? celsius : (celsius * 9) / 5 + 32;
   return `${Math.round(value)}°${unit}`;
 }
 
+/**
+ * Pick one representative forecast entry for each of the next five dates.
+ *
+ * The forecast endpoint returns entries every three hours. When available,
+ * a midday entry (11:00–14:00) is preferred because it is a useful,
+ * consistent snapshot for a daily card. The fallback loop handles responses
+ * where those hours are not present.
+ */
 function selectDailyForecast(list) {
   const daily = [];
   const seen = new Set();
@@ -49,6 +73,8 @@ function App() {
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Keep the decorative rain treatment in sync with the currently displayed
+  // condition without changing the weather data itself.
   const rainy = useMemo(() => {
     const condition = weather?.weather?.[0]?.main?.toLowerCase() || '';
     return condition.includes('rain') || condition.includes('drizzle');
@@ -59,6 +85,11 @@ function App() {
     return () => document.body.classList.remove('weather-rainy');
   }, [rainy]);
 
+  /**
+   * Store only the five most recent unique city names.
+   * localStorage is intentionally used instead of a backend because the
+   * application has no user account or server-side persistence layer.
+   */
   const saveRecentCity = (name) => {
     setRecentCities(prev => {
       const next = [name, ...prev.filter(c => c.toLowerCase() !== name.toLowerCase())].slice(0, 5);
@@ -67,6 +98,14 @@ function App() {
     });
   };
 
+  /**
+   * Fetch current conditions and the forecast using either:
+   *   { q: cityName }
+   * or:
+   *   { lat: latitude, lon: longitude }
+   *
+   * Both requests share metric units and the same API key.
+   */
   const loadWeather = async (params, locationError = 'Unable to fetch weather data.') => {
     if (!API_KEY) {
       setAlert({ type: 'error', message: 'Missing API key. Copy .env.example to .env and add your OpenWeatherMap API key.' });
@@ -82,6 +121,9 @@ function App() {
         throw new Error(locationError);
       }
       const current = await currentRes.json();
+
+      // The forecast endpoint returns a 3-hour series. selectDailyForecast()
+      // reduces it to the five cards shown by the dashboard.
       const forecastRes = await fetch(`${API_BASE}/forecast?${query}`);
       if (!forecastRes.ok) throw new Error('Unable to fetch forecast data.');
       const forecastData = await forecastRes.json();
@@ -98,6 +140,7 @@ function App() {
     }
   };
 
+  /** Submit the city search form after trimming accidental whitespace. */
   const searchCity = (event) => {
     event.preventDefault();
     const value = city.trim();
@@ -108,6 +151,7 @@ function App() {
     loadWeather({ q: value });
   };
 
+  /** Ask the browser for coordinates, then reuse the same weather loader. */
   const useLocation = () => {
     if (!navigator.geolocation) {
       setAlert({ type: 'error', message: 'Geolocation is not supported by your browser.' });
@@ -157,6 +201,11 @@ function App() {
   );
 }
 
+/**
+ * Present current conditions and the three headline metrics.
+ * Temperature conversion is kept local to the component so the raw API
+ * response remains unchanged when the user switches units.
+ */
 function CurrentWeather({ weather, unit, setUnit }) {
   const icon = weather.weather[0].icon;
   const description = weather.weather[0].description;
@@ -166,7 +215,13 @@ function CurrentWeather({ weather, unit, setUnit }) {
     <div className="metrics"><Metric icon={<ThermometerSun />} label="Feels like" value={getTemp(weather.main.feels_like, unit)} /><Metric icon={<Droplets />} label="Humidity" value={`${weather.main.humidity}%`} /><Metric icon={<Wind />} label="Wind speed" value={`${weather.wind.speed} m/s`} /></div>
   </div>;
 }
+/** Small reusable metric tile used by the current-weather card. */
 function Metric({ icon, label, value }) { return <div className="metric">{React.cloneElement(icon, { className: 'metric-icon' })}<div className="metric-label">{label}</div><div className="metric-value">{value}</div></div>; }
+/**
+ * Render one daily forecast snapshot selected by selectDailyForecast().
+ * Forecast temperatures remain in Celsius because the daily cards currently
+ * use a fixed °C presentation.
+ */
 function ForecastCard({ item, index }) {
   const date = new Date(item.dt * 1000); const day = index === 0 ? 'Today' : date.toLocaleDateString(undefined, { weekday: 'short' }); const formatted = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); const desc = item.weather[0].description;
   return <article className="forecast-card"><div className="forecast-day">{day}</div><div className="forecast-date">{formatted}</div><img src={`${ICON_BASE}/${item.weather[0].icon}@2x.png`} alt={desc} /><div className="forecast-desc">{desc}</div><div className="forecast-temp">{Math.round(item.main.temp)}°C</div><div className="forecast-stats"><div className="forecast-stat"><span><Droplets /> Humidity</span><strong>{item.main.humidity}%</strong></div><div className="forecast-stat"><span><Wind /> Wind</span><strong>{item.wind.speed} m/s</strong></div></div></article>;
